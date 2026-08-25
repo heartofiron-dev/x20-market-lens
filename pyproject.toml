@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "x20-market-lens"
-version = "0.1.0"
+version = "0.2.0"
 description = "Provider-aware real-time equity research with an explainable 20-variable calculus model."
 readme = "README.md"
 requires-python = ">=3.11"

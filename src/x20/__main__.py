@@ -17,6 +17,18 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--host", default="127.0.0.1")
     run.add_argument("--port", type=int, default=8765)
     run.add_argument("--symbol", default="AAPL", help="US equity ticker, e.g. AAPL, NVDA or SPCX")
+    run.add_argument("--max-sessions", type=int, default=200, help="maximum simultaneous browser sessions")
+    run.add_argument(
+        "--max-symbols",
+        type=int,
+        help="maximum active shared ticker streams (demo default 12; live default 1)",
+    )
+    run.add_argument("--session-ttl", type=float, default=1800, help="idle session lifetime in seconds")
+    run.add_argument(
+        "--secure-cookie",
+        action="store_true",
+        help="mark the session cookie HTTPS-only (use for public deployment)",
+    )
     mode = run.add_mutually_exclusive_group()
     mode.add_argument("--demo", action="store_true", help="simulated live ticks; no key required")
     mode.add_argument("--live", action="store_true", help="authenticated Alpaca IEX WebSocket + SEC/news feeds")
@@ -63,7 +75,16 @@ def main() -> None:
     if mode == "live":
         ensure_live_credentials(getattr(args, "prompt_credentials", False))
     if args.command == "serve":
-        serve(args.host, args.port, mode, args.symbol)
+        serve(
+            args.host,
+            args.port,
+            mode,
+            args.symbol,
+            max_sessions=args.max_sessions,
+            max_symbols=args.max_symbols,
+            session_ttl=args.session_ttl,
+            secure_cookie=args.secure_cookie,
+        )
         return
     engine = RealtimeEngine(mode=mode, symbol=args.symbol)
     engine.start()

@@ -1,23 +1,22 @@
 # Architecture
 
 ```text
-Ticker selected at runtime
-          │
-          ├─> Alpaca IEX REST snapshot + WebSocket trades/quotes/bars ─┐
-          ├─> Alpaca news REST ────────────────────────────────────────┼─> timestamped evidence/state
-          └─> SEC ticker/CIK + Company Facts ─────────────────────────┘              │
-                                                                                     v
-                                                                      X20 feature vector x(t)
-                                                                                     │
-                                                     z, sigmoid(z), gradient, Hessian,
-                                                     chain rule and second-order stress
-                                                                                     │
-User position & risk budget ─────────────────────────────────────────> personal risk overlay
-                                                                                     │
-                                                                         atomic JSON snapshot
-                                                                                     │
-                                                                             SSE dashboard
+Browser A ─> random session A ─> ticker + InvestorProfile A ─┐
+Browser B ─> random session B ─> ticker + InvestorProfile B ─┤
+                                                             v
+                                                  shared engine pool by ticker
+                                                             │
+                    market + news + SEC ─> X20 x(t), gradient, Hessian, dz/dt
+                                                             │
+                      session profile ─> private personal-risk overlay
+                                                             │
+                                             per-session JSON + SSE response
 ```
+
+The pool creates one engine for each active ticker, not for each browser. A cached base
+snapshot is refreshed once every two seconds, then copied before the session-specific
+investor overlay is attached. This prevents one user's polling frequency or profile from
+changing another user's model state.
 
 ## Timing rules
 
@@ -34,8 +33,9 @@ v0.1 keeps source publication time and feed receipt time in memory. Persistent t
 - News/SEC failures are recorded in `last_error`; market streaming can continue.
 - Demo mode is always labeled simulated in API and UI.
 - Browser cards receive the same snapshot, preventing mixed-time calculations.
-- Switching ticker invalidates the old feed generation and clears old price/evidence state before loading the new symbol.
+- Switching ticker changes only the requesting session. An unused ticker engine is stopped and removed.
+- Idle sessions expire, unused engines are reclaimed, and configured capacity is enforced with HTTP 503.
 
 ## Security
 
-API keys remain in the local live process and are never included in dashboard JSON. The one-time browser handoff and static server bind to `127.0.0.1`; the handoff uses a random CSRF token and `Cache-Control: no-store`. No order endpoint exists.
+API keys remain in the local live process and are never included in dashboard JSON. The one-time browser handoff and static server bind to `127.0.0.1`; the handoff uses a random CSRF token and `Cache-Control: no-store`. Public demo sessions use a random `HttpOnly`, `SameSite=Lax`, HTTPS-only cookie and store all profile data in server memory. No order endpoint exists.

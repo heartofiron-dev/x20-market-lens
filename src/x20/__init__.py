@@ -3,5 +3,5 @@
 from .model import FACTOR_NAMES, QuadraticSignalModel
 
 __all__ = ["FACTOR_NAMES", "QuadraticSignalModel"]
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 

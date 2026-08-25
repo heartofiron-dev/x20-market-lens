@@ -6,6 +6,11 @@ const signed = (value, digits = 4) => `${Number(value) >= 0 ? '+' : ''}${Number(
 
 let latest = null;
 let profileHydrated = false;
+let symbolEditing = false;
+
+function syncSymbolInput(symbol) {
+  if (!symbolEditing) $('symbol-input').value = symbol;
+}
 
 function drawChart(series) {
   const canvas = $('price-chart');
@@ -75,7 +80,7 @@ function render(data) {
   $('mode-badge').textContent = data.quote.is_simulated ? 'DEMO' : data.provider.feed.toUpperCase();
   $('mode-badge').style.background = data.quote.is_simulated ? 'var(--amber)' : 'var(--lime)';
   $('quote-symbol').textContent = data.symbol;
-  $('symbol-input').value = data.symbol;
+  syncSymbolInput(data.symbol);
   $('symbol-line').textContent = `${data.company} · ${data.symbol} · 20-VARIABLE RESPONSE SURFACE`;
   document.title = `X20 Market Lens · ${data.symbol}`;
   $('price').textContent = data.quote.price ? money(data.quote.price, 2) : '—';
@@ -127,13 +132,30 @@ $('profile-form').addEventListener('submit', async event => {
   render(await response.json());
 });
 $('profile-form').elements.risk_aversion.addEventListener('input', event => $('risk-output').value = Number(event.target.value).toFixed(2));
+$('symbol-input').addEventListener('focus', () => { symbolEditing = true; });
+$('symbol-input').addEventListener('input', () => { symbolEditing = true; });
+$('symbol-input').addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    symbolEditing = false;
+    if (latest) $('symbol-input').value = latest.symbol;
+    event.currentTarget.blur();
+  }
+});
 $('symbol-form').addEventListener('submit', async event => {
   event.preventDefault();
-  const symbol = new FormData(event.currentTarget).get('symbol');
+  const symbol = String(new FormData(event.currentTarget).get('symbol') || '').trim().toUpperCase();
+  $('symbol-input').value = symbol;
   const response = await fetch('/api/symbol', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({symbol}) });
   const payload = await response.json();
-  if (!response.ok) { $('feed-status').textContent = `ERROR · ${payload.error}`; return; }
+  if (!response.ok) {
+    symbolEditing = true;
+    $('feed-status').textContent = `ERROR · ${payload.error}`;
+    $('symbol-input').focus();
+    return;
+  }
+  symbolEditing = false;
   render(payload);
+  $('symbol-input').blur();
 });
 window.addEventListener('resize', () => latest && drawChart(latest.series));
 initial().catch(error => { $('feed-status').textContent = `ERROR · ${error.message}`; });
