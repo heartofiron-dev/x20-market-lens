@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "x20-market-lens"
+version = "0.1.0"
+description = "Provider-aware real-time equity research with an explainable 20-variable calculus model."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Yanxi Li" }]
+dependencies = []
+
+[project.optional-dependencies]
+live = ["websockets>=15,<16"]
+dev = ["pytest>=8,<9"]
+
+[project.scripts]
+x20 = "x20.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,32 @@
+{
+  "symbol": "SPCX",
+  "registrant": "Space Exploration Technologies Corp.",
+  "cik": "0001181412",
+  "form": "10-Q",
+  "filing_date": "2026-08-04",
+  "period_end": "2026-06-30",
+  "period": "six_months",
+  "units": "USD millions",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/1181412/000162828026052535/spcx-20260630.htm",
+  "facts": {
+    "revenue_2026": 12508,
+    "revenue_2025": 8138,
+    "research_and_development_2026": 7062,
+    "research_and_development_2025": 3515,
+    "operating_income_2026": -2086,
+    "net_income_2026": -4817,
+    "operating_cash_flow_2026": 3466,
+    "capital_expenditures_2026": 28476,
+    "cash_and_cash_equivalents": 93522,
+    "marketable_securities": 6487
+  },
+  "derived": {
+    "revenue_growth": 0.537,
+    "rd_intensity": 0.565,
+    "operating_margin": -0.167,
+    "operating_cash_margin": 0.277,
+    "capex_intensity": 2.277
+  },
+  "note": "Values were transcribed from the cited filing and should be revalidated by the automated XBRL pipeline before production use."
+}
+
