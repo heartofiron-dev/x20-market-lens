@@ -16,7 +16,11 @@ def parser() -> argparse.ArgumentParser:
     run = sub.add_parser("serve", help="start the real-time dashboard")
     run.add_argument("--host", default="127.0.0.1")
     run.add_argument("--port", type=int, default=8765)
-    run.add_argument("--symbol", default="AAPL", help="US equity ticker, e.g. AAPL, NVDA or SPCX")
+    run.add_argument(
+        "--symbol",
+        default="AAPL",
+        help="equity ticker; e.g. AAPL for US live/demo or SHOP.TO for Canadian demo",
+    )
     run.add_argument("--max-sessions", type=int, default=200, help="maximum simultaneous browser sessions")
     run.add_argument(
         "--max-symbols",
@@ -31,7 +35,7 @@ def parser() -> argparse.ArgumentParser:
     )
     mode = run.add_mutually_exclusive_group()
     mode.add_argument("--demo", action="store_true", help="simulated live ticks; no key required")
-    mode.add_argument("--live", action="store_true", help="authenticated Alpaca IEX WebSocket + SEC/news feeds")
+    mode.add_argument("--live", action="store_true", help="authenticated US-only Alpaca IEX WebSocket + SEC/news feeds")
     run.add_argument(
         "--prompt-credentials",
         action="store_true",

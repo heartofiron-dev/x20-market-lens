@@ -12,7 +12,14 @@ import threading
 from typing import Callable
 
 from .evidence import EvidenceItem, EvidenceLedger, EvidenceTier
-from .market_data import AlpacaIEXFeed, MarketDataConfigurationError, ProviderIdentity, iso_to_millis, validate_symbol
+from .market_data import (
+    AlpacaIEXFeed,
+    MarketDataConfigurationError,
+    ProviderIdentity,
+    iso_to_millis,
+    symbol_context,
+    validate_symbol,
+)
 from .model import FACTOR_NAMES, QuadraticSignalModel
 from .profile import InvestorProfile
 from .sec_data import SecCompanyData, empty_fundamentals
@@ -201,6 +208,21 @@ class RealtimeEngine:
         while not self._stop.is_set():
             generation = self._generation
             symbol = self.symbol
+            context = symbol_context(symbol)
+            if context.country == "CA":
+                if generation == self._generation:
+                    with self._lock:
+                        self.fundamentals = empty_fundamentals(
+                            symbol,
+                            "Canadian issuer fundamentals need a licensed SEDAR+ data integration",
+                            units=context.currency,
+                        )
+                        self.last_error = ""
+                    self._notify()
+                for _ in range(60):
+                    if self._stop.wait(5.0) or generation != self._generation:
+                        break
+                continue
             try:
                 fundamentals = sec.fundamentals(symbol)
                 if generation == self._generation:
@@ -314,6 +336,7 @@ class RealtimeEngine:
             return factors, velocity
 
     def snapshot(self) -> dict[str, object]:
+        instrument = symbol_context(self.symbol)
         factors, velocity = self.factors()
         coverage = 0.35 + (0.35 if self.fundamentals.get("available") else 0.0) + (0.2 if self.ledger.as_list() else 0.0)
         output = self.model.evaluate(factors, velocity, data_coverage=min(0.9, coverage), history_days=max(5, len(self.prices)))
@@ -326,6 +349,7 @@ class RealtimeEngine:
         return {
             "symbol": self.symbol,
             "company": self.company,
+            "instrument": instrument.as_dict(),
             "generated_at": datetime.now(UTC).isoformat(),
             "mode": self.mode,
             "feed_status": self.status,
@@ -334,7 +358,7 @@ class RealtimeEngine:
             "last_event_kind": self.last_event_kind,
             "last_error": self.last_error,
             "provider": self.provider_identity.as_dict(),
-            "quote": {"price": round(price, 4), "bid": round(float(self.quote.get("bid", 0.0) or 0.0), 4), "ask": round(float(self.quote.get("ask", 0.0) or 0.0), 4), "currency": "USD", "is_simulated": is_simulated, "source": "synthetic" if is_simulated else "alpaca_iex"},
+            "quote": {"price": round(price, 4), "bid": round(float(self.quote.get("bid", 0.0) or 0.0), 4), "ask": round(float(self.quote.get("ask", 0.0) or 0.0), 4), "currency": instrument.currency, "is_simulated": is_simulated, "source": "synthetic" if is_simulated else "alpaca_iex"},
             "series": [{"t": t, "p": round(p, 4)} for t, p in zip(times, prices)],
             "factors": [{"name": name, "value": round(factors[name], 5), "velocity": round(velocity[name], 6)} for name in FACTOR_NAMES],
             "model": output.as_dict(),
@@ -344,7 +368,7 @@ class RealtimeEngine:
             "investor": profile,
             "calculus": {"surface": "z(x) = beta_0 + beta^T x + 1/2 x^T H x", "gradient": "nabla z = beta + Hx", "chain_rule": "dz/dt = nabla z dot dx/dt", "stress": "Delta z ~= nabla z dot h + 1/2 h^T H h"},
             "limits": [
-                "Alpaca free IEX is a genuine live exchange feed, but it is not the consolidated US SIP.",
+                "Canadian tickers are synthetic demo streams until a licensed TSX market-data provider is configured." if instrument.country == "CA" else "Alpaca free IEX is a genuine live exchange feed, but it is not the consolidated US SIP.",
                 "Current coefficients are transparent heuristic priors pending walk-forward calibration.",
                 "Unknown valuation, rates, sector, float and event fields remain zero instead of being guessed.",
                 "Output is research and risk-management information, not an order or return guarantee.",

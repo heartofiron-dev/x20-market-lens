@@ -3,8 +3,10 @@
 | Domain | Provider | Transport | Cadence | v0.1 status |
 |---|---|---|---|---|
 | Trades, quotes, bars | Alpaca IEX | REST bootstrap + WebSocket | event-driven | implemented behind local Alpaca credentials |
+| Canadian demo ticks | Local synthetic generator | in-process stream | 1 second | implemented for `.TO`, `.V`, `.CN`, `.NE`; not real TSX market data |
 | Company news | Alpaca News | REST | 60 seconds | implemented |
 | Regulatory facts | SEC EDGAR Company Facts | REST | 5 minutes | generic ticker/CIK and XBRL normalization implemented |
+| Canadian regulatory facts | SEDAR+ | not connected | unavailable | requires a licensed/approved integration; values stay unavailable |
 | Audited example | SPCX 2026 Q2 10-Q | local JSON | static fixture | retained as a case study, not a runtime dependency |
 | Rates | FRED | planned | 5–15 minutes | manual factor placeholder |
 | Industry benchmark | Nasdaq/approved vendor | planned | 1 minute | manual factor placeholder |

@@ -16,7 +16,7 @@
     </a>
     <form class="symbol-form" id="symbol-form" aria-label="切换股票代码">
       <label for="symbol-input">Ticker</label>
-      <input id="symbol-input" name="symbol" value="AAPL" maxlength="15" autocomplete="off" spellcheck="false">
+      <input id="symbol-input" name="symbol" value="AAPL" maxlength="15" placeholder="AAPL / SHOP.TO" autocomplete="off" spellcheck="false">
       <button type="submit">分析</button>
     </form>
     <div class="feed-pill" id="feed-pill"><i></i><span id="feed-status">CONNECTING</span></div>
@@ -30,7 +30,7 @@
         <p class="lede">把实时行情、新闻可信度、监管文件、资本效率和你的实际仓位放进同一个可解释系统。输出概率区间，不输出确定性幻觉。</p>
       </div>
       <div class="quote-block">
-        <span class="quote-label"><span id="quote-symbol">AAPL</span> / USD <b id="mode-badge">DEMO</b></span>
+        <span class="quote-label"><span id="quote-symbol">AAPL</span> / <span id="quote-currency">USD</span> <b id="mode-badge">DEMO</b></span>
         <strong id="price">—</strong>
         <span id="tick-time">等待首个数据点</span>
       </div>

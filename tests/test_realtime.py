@@ -27,6 +27,14 @@ class RealtimeEngineTests(unittest.TestCase):
         engine = RealtimeEngine(mode="live")
         self.assertEqual(engine.mode, "live")
 
+    def test_canadian_demo_snapshot_uses_cad_and_tsx_context(self):
+        engine = RealtimeEngine(mode="demo", symbol="SHOP.TO")
+        engine._record(150.0, 1000.0)
+        snapshot = engine.snapshot()
+        self.assertEqual(snapshot["instrument"]["exchange"], "TSX")
+        self.assertEqual(snapshot["quote"]["currency"], "CAD")
+        self.assertTrue(snapshot["quote"]["is_simulated"])
+
 
 if __name__ == "__main__":
     unittest.main()

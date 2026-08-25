@@ -137,7 +137,7 @@ class SecCompanyData:
         }
 
 
-def empty_fundamentals(symbol: str, reason: str = "loading") -> dict[str, object]:
+def empty_fundamentals(symbol: str, reason: str = "loading", *, units: str = "USD") -> dict[str, object]:
     return {
         "available": False,
         "symbol": validate_symbol(symbol),
@@ -146,7 +146,7 @@ def empty_fundamentals(symbol: str, reason: str = "loading") -> dict[str, object
         "period": "",
         "form": "",
         "filed": "",
-        "units": "USD",
+        "units": units,
         "source": "",
         "revenue": 0.0,
         "revenue_prior": 0.0,

@@ -43,6 +43,61 @@ class ProviderIdentity:
         }
 
 
+@dataclass(frozen=True)
+class InstrumentContext:
+    country: str
+    exchange: str
+    market_label: str
+    currency: str
+    regulator: str
+    regulatory_url: str
+    alpaca_live_supported: bool
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "country": self.country,
+            "exchange": self.exchange,
+            "market_label": self.market_label,
+            "currency": self.currency,
+            "regulator": self.regulator,
+            "regulatory_url": self.regulatory_url,
+            "alpaca_live_supported": self.alpaca_live_supported,
+        }
+
+
+CANADIAN_SUFFIXES = {
+    ".TO": "TSX",
+    ".V": "TSXV",
+    ".CN": "CSE",
+    ".NE": "CBOE CANADA",
+}
+
+
+def symbol_context(symbol: str) -> InstrumentContext:
+    """Describe the market convention encoded in a user-facing ticker."""
+    ticker = validate_symbol(symbol)
+    for suffix, exchange in CANADIAN_SUFFIXES.items():
+        if ticker.endswith(suffix) and len(ticker) > len(suffix):
+            return InstrumentContext(
+                country="CA",
+                exchange=exchange,
+                market_label="CANADIAN EQUITY",
+                currency="CAD",
+                regulator="SEDAR+",
+                regulatory_url="https://www.sedarplus.ca/landingpage/",
+                alpaca_live_supported=False,
+            )
+    return InstrumentContext(
+        country="US",
+        exchange="US",
+        market_label="US EQUITY",
+        currency="USD",
+        regulator="SEC",
+        regulatory_url=f"https://www.sec.gov/edgar/search/#/q={quote(ticker)}",
+        alpaca_live_supported=True,
+    )
+
+
 class AlpacaIEXFeed:
     """Authenticated event-driven stock feed from Alpaca's free IEX stream."""
 
@@ -60,6 +115,12 @@ class AlpacaIEXFeed:
         secret_key: str | None = None,
     ) -> None:
         self.symbol = validate_symbol(symbol)
+        context = symbol_context(self.symbol)
+        if not context.alpaca_live_supported:
+            raise MarketDataConfigurationError(
+                f"Alpaca IEX live mode does not cover {context.exchange} symbol {self.symbol}; "
+                "Canadian symbols currently run in demo mode until a licensed TSX provider is configured"
+            )
         self.on_trade = on_trade
         self.on_quote = on_quote
         self.on_status = on_status
@@ -232,4 +293,3 @@ def _text(mapping: object, *keys: str) -> str:
         if value:
             return str(value)
     return ""
-

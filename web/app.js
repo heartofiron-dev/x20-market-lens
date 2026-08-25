@@ -1,7 +1,8 @@
 const $ = (id) => document.getElementById(id);
 const pct = (value, digits = 1) => `${(Number(value) * 100).toFixed(digits)}%`;
-const money = (value, digits = 0) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: digits }).format(Number(value));
-const compactMoney = value => new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', notation:'compact', maximumFractionDigits:2 }).format(Number(value));
+let currentCurrency = 'USD';
+const money = (value, digits = 0, currency = currentCurrency) => new Intl.NumberFormat(currency === 'CAD' ? 'en-CA' : 'en-US', { style: 'currency', currency, maximumFractionDigits: digits }).format(Number(value));
+const compactMoney = (value, currency = currentCurrency) => new Intl.NumberFormat(currency === 'CAD' ? 'en-CA' : 'en-US', { style:'currency', currency, notation:'compact', maximumFractionDigits:2 }).format(Number(value));
 const signed = (value, digits = 4) => `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(digits)}`;
 
 let latest = null;
@@ -74,14 +75,16 @@ function escapeHtml(text) {
 
 function render(data) {
   latest = data;
+  currentCurrency = data.quote.currency || 'USD';
   const live = !data.quote.is_simulated && ['snapshot_ready','connected','authenticated','subscribed','live'].includes(data.feed_status);
   $('feed-pill').classList.toggle('live', live);
   $('feed-status').textContent = `${data.feed_status.toUpperCase()} · ${data.mode.toUpperCase()}`;
   $('mode-badge').textContent = data.quote.is_simulated ? 'DEMO' : data.provider.feed.toUpperCase();
   $('mode-badge').style.background = data.quote.is_simulated ? 'var(--amber)' : 'var(--lime)';
   $('quote-symbol').textContent = data.symbol;
+  $('quote-currency').textContent = currentCurrency;
   syncSymbolInput(data.symbol);
-  $('symbol-line').textContent = `${data.company} · ${data.symbol} · 20-VARIABLE RESPONSE SURFACE`;
+  $('symbol-line').textContent = `${data.instrument.market_label} · ${data.company} · ${data.symbol} · 20-VARIABLE RESPONSE SURFACE`;
   document.title = `X20 Market Lens · ${data.symbol}`;
   $('price').textContent = data.quote.price ? money(data.quote.price, 2) : '—';
   $('tick-time').textContent = data.last_market_at ? `最新 tick · ${new Date(data.last_market_at).toLocaleTimeString()}` : '等待首个数据点';
@@ -96,13 +99,14 @@ function render(data) {
   $('stress-detail').textContent = `一阶 ${signed(data.stress_test.first_order,3)} · 二阶 ${signed(data.stress_test.second_order,3)}`;
   drawChart(data.series); renderSensitivity(data.model.top_sensitivities); renderFactors(data.factors); renderEvidence(data.evidence);
   const f = data.fundamentals;
-  $('revenue').textContent = f.available ? compactMoney(f.revenue) : '—';
-  $('revenue-growth').textContent = f.available ? `同比 ${pct(f.revenue_growth)}` : 'SEC 数据加载中';
+  $('revenue').textContent = f.available ? compactMoney(f.revenue, f.units || currentCurrency) : '—';
+  $('revenue-growth').textContent = f.available ? `同比 ${pct(f.revenue_growth)}` : (data.instrument.country === 'CA' ? 'SEDAR+ 数据待接入' : 'SEC 数据加载中');
   $('rd-intensity').textContent = f.available ? pct(f.rd_intensity) : '—';
   $('op-margin').textContent = f.available ? pct(f.operating_margin) : '—';
   $('capex-intensity').textContent = f.available ? `${Number(f.capex_intensity).toFixed(2)}×` : '—';
   $('fundamental-reading').textContent = f.interpretation;
-  $('filing-link').href = f.source || `https://www.sec.gov/edgar/search/#/q=${data.symbol}`;
+  $('filing-link').href = f.source || data.instrument.regulatory_url;
+  $('filing-link').textContent = `${data.instrument.regulator} ↗`;
   $('concentration').textContent = pct(data.investor.concentration);
   $('downside').textContent = money(data.investor.downside_95_amount, 0);
   $('pnl').textContent = money(data.investor.unrealized_pnl, 0);
