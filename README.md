@@ -1,40 +1,35 @@
 # X20 Market Lens
 
-> 面向任意受支持美股代码的实时、证据优先、可解释研究系统。它把 20 个市场、新闻、财报与宏观变量放进同一张二次响应曲面，并把投资者本人的仓位与风险预算作为独立决策层。
+这是一个我正在做的股票研究项目。
 
-![Python](https://img.shields.io/badge/Python-3.11%2B-69e5e5) ![Tests](https://img.shields.io/badge/tests-stdlib%20unittest-b4f34d) ![Model](https://img.shields.io/badge/model-explainable%20quadratic-a995ff) ![Trading](https://img.shields.io/badge/auto--trading-disabled-ffbc5c)
+我做它不是因为我觉得股票可以被一个神奇的 AI 百分之百预测，而是因为我不太满意很多股票软件只给几根线、几条新闻，再扔给用户一个没有解释的“看涨分数”。股票当然会受到价格、利率、财报、新闻、市场情绪甚至传闻影响，但这些信息的可信度和出现时间都不一样。我想做的是把它们放到同一个可以检查、可以追问的模型里。
 
-## 当前状态（2026-08-25）
+项目最早拿 SPCX 做测试，但现在已经不是 SPCX 专用工具了。美股可以输入 `AAPL`、`NVDA`、`MSFT` 这样的代码；加拿大股票的演示支持 `SHOP.TO`、`RY.TO`、`TD.TO`，以及 `.V`、`.CN`、`.NE` 后缀。
 
-| 项目 | 当前情况 |
-|---|---|
-| 公网测试地址 | [x20-market-lens-nq5d.onrender.com](https://x20-market-lens-nq5d.onrender.com/) 已上线，可直接选择股票并体验分析界面 |
-| 公网行情 | **DEMO 模拟数据**；橙色 `DEMO` 标签代表价格不是实际市场成交，即使开盘也不会自动切换为真实行情 |
-| 本地真实行情 | 已支持 Alpaca Paper Trading 的 IEX 实时快照与 WebSocket；密钥只保留在本机进程内存 |
-| 股票范围 | 不是 SPCX 专用；支持输入任意合法美股代码，SEC 有覆盖时会自动加载公司财务事实 |
-| 加拿大股票 | 公网 DEMO 已接受 `SHOP.TO`、`RY.TO`、`TD.TO` 等 TSX/TSXV/CSE/Cboe Canada 代码并使用 CAD 显示；真实 TSX 行情与 SEDAR+ 基本面仍待合规数据源 |
-| 多用户 | 已实现浏览器会话隔离；公网配置上限为 200 个活跃会话、12 个同时活跃代码、30 分钟空闲清理 |
-| 数学模型 | 20 因子二次响应曲面、梯度、Hessian、链式变化率和二阶压力测试均已实现 |
-| 预测能力 | 当前系数仍是透明启发式先验，**尚未完成样本外校准与收益有效性证明** |
-| 交易功能 | 未实现自动下单，也不提供收益保证或投资建议 |
+先把最重要的话放在前面：**现在的 X20 是研究 MVP，不是已经证明能赚钱的预测器，也不会自动下单。**
 
-目前已经完成的是“可运行、可解释、支持多人测试的研究 MVP”。当前最重要的缺口是：公网实时行情展示许可、历史样本校准与回测、数据源补全、持久化和生产监控。在获得允许多用户展示/再分发的市场数据许可之前，公网继续保持 DEMO；真实 IEX 行情仅通过本地安全模式使用。
+## 现在可以直接试
 
+公网演示：<https://x20-market-lens-nq5d.onrender.com/>
 
-## 这个项目解决什么
+打开以后，在页面顶部输入股票代码，点击“分析”就可以切换。不同浏览器之间的股票、持仓和风险参数互不覆盖，所以几个人可以同时测试。
 
-价格走势、新闻热度、利率、财报和传闻的时点不同、可信度不同，也经常互相矛盾。X20 不把它们压成一个神秘的“AI 分数”，而是保留完整证据链，并回答四个问题：
+需要注意的是，公网价格旁边如果显示橙色 `DEMO`，就表示这是模拟数据。它会动，但不是交易所真实成交；即使开盘也不会自动变成真实行情。
 
-1. 此刻的 20 维状态是什么？
-2. 哪个变量的局部影响（偏导数）最大？
-3. 所有变量实时变化后，模型曲面沿时间方向走多快？
-4. 同样的市场状态，对用户的真实仓位意味着多大风险？
+目前公网版本能做的事情包括：
 
-当前 v0.2 是**可运行研究 MVP**，并已加入多人会话隔离。模型系数是透明启发式先验，还不是经过充分样本外验证的交易模型。
+- 切换不同美股和加拿大股票代码；
+- 连续更新价格图和 20 个模型因子；
+- 展示梯度、链式变化率和二阶压力测试；
+- 输入持股数、成本、组合总值和可承受亏损，单独计算个人风险；
+- 对美股尝试加载 SEC Company Facts；
+- 把加拿大代码识别为 CAD，并指向 SEDAR+，不会假装它有 SEC 数据。
 
-## 一分钟运行
+公网当前最多保留 200 个活跃浏览器会话和 12 个同时活跃的股票代码。免费 Render 实例休眠或重启后，会话会消失，这个版本本来就是给大家测试用的，不是永久账户系统。
 
-### 安全启动真实行情（推荐）
+## 真实行情怎么运行
+
+真实行情目前只在本机安全模式下使用 Alpaca Paper Trading。安装和启动：
 
 ```powershell
 python -m venv .venv
@@ -42,102 +37,102 @@ python -m venv .venv
 .\.venv\Scripts\python.exe .\scripts\browser_credentials.py
 ```
 
-打开 <http://127.0.0.1:8764>，在本机页面中填写 Alpaca Paper Trading Key/Secret，再选择初始股票代码。凭证只进入本次实时进程内存，不写入项目文件、不进入浏览器端 JavaScript，也不会由 API 返回。
+然后打开 <http://127.0.0.1:8764>，输入 Alpaca Paper Trading 的 Key 和 Secret。
 
-页面启动后可直接切换 `AAPL`、`NVDA`、`SPCX` 等有效美股代码；切换时旧代码的价格序列、证据和基本面状态会清空并重新加载。
+凭证只进入这一次运行的进程内存，不写进项目文件，也不会被网页 JavaScript 或 API 返回。真实模式会先读取 Alpaca 的最新快照，再连接 IEX WebSocket 接收 trades、quotes 和 bars。
 
-### 演示模式
+这里也有两个限制需要说清楚：
 
-无需 API key 的实时演示模式：
+- Alpaca 免费行情是 IEX，不是覆盖全美交易所的 consolidated SIP；
+- Alpaca IEX 不提供 TSX 行情，所以加拿大代码现在只能跑 DEMO。程序会明确拒绝把 `SHOP.TO` 之类的代码伪装成 Alpaca 实时行情。
+
+公网真实行情还需要允许多用户展示或再分发的数据许可。在许可解决之前，我不会把个人 Alpaca Key 塞进 Render，更不会把模拟价格写成“实时价格”。
+
+如果只想在本机看模拟版本：
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m x20 serve --demo
 ```
 
-打开 <http://127.0.0.1:8765>。页面会立即收到每秒一个模拟 tick，并通过 SSE 每两秒重算全部 X20 因子、梯度、链式变化率、压力测试和个人风险。
+打开 <http://127.0.0.1:8765> 即可。
 
-### 让别人从公网同时测试
+## 为什么这里会有多元微积分
 
-仓库根目录的 `render.yaml` 可部署一个多人演示实例。部署后，每个浏览器获得随机的
-`HttpOnly` 会话 Cookie；股票代码、持仓、成本和风险参数只保存在该会话的服务器内存中，
-不会覆盖其他用户。访问相同股票的用户共享同一份市场状态和计算缓存，避免为每位用户
-重复创建后台数据流。
-
-[Deploy to Render](https://render.com/deploy?repo=https://github.com/heartofiron-dev/x20-market-lens)
-
-公网 Blueprint 有意使用 `--demo`：它支持最多 200 个活跃会话和 12 个同时活跃的股票代码，
-每个空闲会话 30 分钟后自动清理。Render 免费实例重启或休眠后，内存会话会消失；这符合
-测试用途，不应被当作永久账户系统。
-
-不要把个人 Alpaca Key 配进公开演示站。个人 Trading API 行情授权不等于公开再分发行情的
-授权。真实 IEX 行情仍使用上面的本地安全启动方式；若未来要提供合规的公共实时行情，需要
-另行取得允许多用户展示/再分发的数据许可。
-
-高级用户也可以从终端启动真实模式：
-
-```powershell
-.\.venv\Scripts\x20.exe serve --live --prompt-credentials --symbol AAPL
-```
-
-`--live` 先从 Alpaca REST 载入真实 IEX 快照，再认证 `wss://stream.data.alpaca.markets/v2/iex` 并订阅 trades、quotes 和 bars。免费 Paper 账户只覆盖 IEX，并不是全市场 SIP；休市期间只有最近真实快照，没有新成交事件。没有凭证时程序会拒绝启动 live 模式，不会把模拟或旧数据冒充实时数据。
-
-## 多元微积分如何真正进入模型
-
-令标准化状态为 `x ∈ [-1,1]^20`，模型曲面为：
+我没有想把微积分公式贴在界面上当装饰。X20 的核心确实是一张 20 维二次响应曲面：
 
 ```text
 z(x) = β₀ + βᵀx + ½xᵀHx
 P(up | x) = sigmoid(z)
 ```
 
-- 梯度 `∇z = β + Hx`：此刻每个因子的边际影响。
-- 链式法则 `dz/dt = ∇z · dx/dt`：20 个实时变量一起变化时，信号的瞬时方向。
-- Hessian `H`：新闻情绪×可信度、研发投入×转化效率、估值×利率等二阶交互。
-- 二阶压力测试 `Δz ≈ ∇z·h + ½hᵀHh`：同一组冲击在当前状态下造成的非线性影响。
+这里的 `x` 是标准化后的 20 个市场状态变量。
 
-实现见 [`src/x20/model.py`](src/x20/model.py)，推导与有限差分验证见 [`docs/MATH.md`](docs/MATH.md)。
+- `∇z = β + Hx` 是梯度。它回答的是：在当前状态下，轻微改变哪个变量，对结果影响最大？
+- `dz/dt = ∇z · dx/dt` 是链式法则。它把所有变量此刻的变化速度合在一起，看模型正在朝哪个方向走。
+- `H` 是 Hessian。它用来表达变量之间的二阶关系，比如同一条利好新闻，在可信度很高和可信度很低时不应该产生相同影响。
+- `Δz ≈ ∇z·h + ½hᵀHh` 是二阶压力测试。它用来估计坏消息、波动上升和供给压力同时出现时，影响会不会相互放大。
 
-## X20 因子
+模型实现见 [`src/x20/model.py`](src/x20/model.py)，更完整的推导和有限差分验证在 [`docs/MATH.md`](docs/MATH.md)。
 
-| 层 | 因子 |
-|---|---|
-| Market microstructure | short/medium momentum, realized volatility, volume shock, order flow |
-| Information | news sentiment, news credibility, rumor pressure |
-| Fundamentals | revenue growth, R&D intensity, R&D efficiency, operating margin, operating cash margin, capex intensity, liquidity strength |
-| Regime & supply | valuation stretch, rate shock, sector relative strength, float unlock pressure, event risk |
+## 20 个变量是什么
 
-所有因子都有来源和时点。传闻只能进入 `rumor_pressure`；在监管文件或公司原文交叉验证前，不得升级为基本面事实。
+现在的状态向量包括：
 
-## 通用深层基本面分析
+- 市场：短线动量、中期动量、实现波动率、成交量异动、订单流；
+- 信息：新闻情绪、新闻可信度、传闻压力；
+- 基本面：营收增长、研发强度、研发转化效率、经营利润率、经营现金率、资本开支强度、流动性实力；
+- 环境与供给：估值拉伸、利率冲击、行业相对强度、解禁供给压力、事件风险。
 
-运行时按股票代码解析 SEC ticker/CIK 映射与 Company Facts，把同一财务概念的多个 XBRL 标签合并，并按相同 form、fiscal period 和近似报告跨度寻找去年同期。当前自动提取和派生：
+缺失的数据不会被随便编一个数字补进去。当前没有可靠来源的估值、利率、行业强弱、解禁等变量会保持中性；传闻也只能进入 `rumor_pressure`，不会在没有监管文件或公司原文确认时被升级成基本面事实。
+
+## 我真正想看的基本面
+
+单纯比较“哪个公司研发投入更多”很容易误导。投入高不代表研发有效，也不代表估值合理。所以模型会尽量把研发投入和营收增长、利润率、经营现金流、资本开支放在一起看。
+
+美股运行时会根据股票代码查找 SEC ticker/CIK 和 Company Facts，再计算：
 
 - revenue growth；
-- R&D intensity 与 R&D efficiency；
-- operating margin 与 operating-cash margin；
-- capex intensity 与 liquidity strength；
-- filing form、period、filing date 和 SEC 原始来源。
+- R&D intensity 和 R&D efficiency；
+- operating margin 和 operating-cash margin；
+- capex intensity 和 liquidity strength；
+- 对应的 filing form、期间、提交日期和 SEC 原始链接。
 
-这让系统能区分“研发投入高”和“研发真正转化为增长/利润改善”，而不是凭公司名气或新闻热度判断泡沫。`data/spcx_q2_2026.json` 仅保留为可审计案例，不是默认代码、运行依赖或唯一支持标的。
+`data/spcx_q2_2026.json` 只是留下来的一个可审计案例，不是默认股票，也不是运行依赖。
 
-## 个人风险层
+加拿大公司的 SEDAR+ 基本面暂时还没有接入。目前页面会诚实显示 unavailable，而不是拿美股 SEC 数据或者模拟财务数字顶上去。
 
-网页允许输入：持股数、买入均价、投资组合总值、最大可承受损失、风险厌恶和持有周期。市场模型不因用户偏好篡改；个人层单独计算：
+## 用户自己的情况也要算进去
 
-- 仓位集中度；
-- 未实现盈亏；
-- 90% 模型区间映射的 95% 下行金额；
-- 相对个人亏损预算的 risk load；
-- 风险厌恶和集中度惩罚后的个人效用。
+同一只股票，对轻仓用户和重仓用户不是同一个问题。因此市场模型和个人风险层是分开的。
 
-## 多用户隔离
+用户可以填写持股数、买入均价、组合总值、最大可承受损失、风险厌恶程度和持有周期。系统再计算仓位集中度、未实现盈亏、模型区间对应的下行金额，以及相对个人亏损预算的 risk load。
 
-- 浏览器只保存不可读的随机会话 ID，不保存 Alpaca 密钥或投资者资料。
-- 服务器按会话保存当前股票与 `InvestorProfile`；API 和 SSE 始终读取当前会话。
-- 同一股票的行情、新闻、基本面和模型基准快照共享；个人风险覆盖层在响应前单独计算。
-- `/api/health` 不创建会话，部署平台的健康检查不会耗尽用户容量。
-- 达到会话或活跃股票容量时返回明确的 `503`，不会偷偷复用或覆盖别人的会话。
+这些资料只存在当前服务器会话的内存中。浏览器拿到的是随机的 `HttpOnly` 会话 Cookie，不保存 Alpaca 密钥。
+
+## 目前做到哪一步
+
+已经完成：
+
+- 通用股票代码切换，不再把 SPCX 写死；
+- 本地 Alpaca IEX 快照和 WebSocket；
+- 公网多人会话隔离和共享股票计算缓存；
+- SEC Company Facts 的通用解析；
+- 加拿大股票代码、交易所、CAD 和 SEDAR+ 边界识别；
+- 20 因子模型、梯度、Hessian、链式法则和二阶压力测试；
+- 用户仓位和风险预算覆盖层；
+- 单元测试、并发浏览器隔离测试和 GitHub Actions。
+
+还没有完成：
+
+- 公网真实行情展示许可；
+- 加拿大真实 TSX 行情和 SEDAR+ 财务数据；
+- 跨股票、跨行情阶段的 purged walk-forward calibration；
+- 足够严格的历史回测、概率校准、滑点和交易成本验证；
+- 期权隐含波动率、FRED 利率和自动同行业 benchmark；
+- 持久化账户、数据源 failover、生产监控和完整许可审计。
+
+所以现在页面上的“上涨概率”和“20 日收益区间”只能看作透明的启发式输出。公式可以算对，不代表预测已经有效，更不代表存在因果关系。
 
 ## 测试
 
@@ -147,40 +142,22 @@ python -m unittest discover -s tests -v
 python -m x20 snapshot
 ```
 
-测试覆盖 Hessian 对称性、解析梯度对有限差分、链式法则、二阶压力测试、证据可信度、用户风险层、20 因子快照，以及两个并发浏览器的股票与持仓隔离。
+测试包括 Hessian 对称性、解析梯度和有限差分的一致性、链式法则、二阶压力测试、证据可信度、个人风险层、20 因子快照、加拿大代码边界，以及两个浏览器同时使用时的会话隔离。
 
 ## 项目结构
 
 ```text
-src/x20/               模型、实时采集、证据账本、用户风险、HTTP/SSE 服务
-web/                   无框架实时仪表盘
-scripts/               本地安全凭证交接与启动器
-data/                  可审计的案例数据，不参与通用运行时硬编码
-tests/                 单元与集成测试
-docs/                  数学、架构、数据源、验证路线
+src/x20/               模型、实时数据、证据、风险层和 HTTP/SSE 服务
+web/                   不依赖前端框架的实时仪表盘
+scripts/               本地凭证交接和启动脚本
+data/                  可审计案例数据
+tests/                 单元测试和集成测试
+docs/                  数学、架构、数据来源和免责声明
 .github/workflows/     CI
 ```
 
-## 实时架构边界
-
-- 市场：live 模式是 WebSocket，不是定时刷新网页。
-- 新闻：按分钟轮询并保留来源、发布时间、原文 URL、可信层级。
-- 监管文件：SEC submissions 通常近实时更新，服务按分钟检查。
-- 页面：后端通过 SSE 持续推送一个原子快照，避免多个卡片时间不一致。
-- 断线：状态明确显示 `reconnecting/error`；不拿旧数据伪装新数据。
-
-详细图见 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)。
-
-## 当前边界与后续验证
-
-- 当前模型系数是透明先验，尚未完成跨股票、跨市场状态的 purged walk-forward calibration；
-- 尚未接入逐笔 bid/ask、期权隐含波动率、FRED 利率和同行业自动 benchmark；
-- 估值、利率、行业强弱、float/解禁等尚无可靠来源时保持中性值，不进行猜测填充；
-- 没有自动下单、仓位调整或收益保证；
-- 生产部署前仍需持久化、provider failover、速率限制、监控和数据许可审计。
-
-验收门槛和路线图在 [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md)。
+更详细的架构在 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)，项目验收标准和后续路线在 [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md)。
 
 ## 免责声明
 
-本项目用于教育、研究与风险分析，不构成投资、法律、税务或经纪建议。概率和区间可能严重错误。不要仅凭本系统进行交易，参见 [`docs/DISCLAIMER.md`](docs/DISCLAIMER.md)。
+这个项目用于教育、研究和风险分析，不构成投资、法律、税务或经纪建议。市场数据、新闻分类、财务解析和模型输出都可能出错。不要只根据这个项目买卖股票，完整说明见 [`docs/DISCLAIMER.md`](docs/DISCLAIMER.md)。
