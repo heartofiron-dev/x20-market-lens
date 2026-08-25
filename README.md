@@ -4,6 +4,22 @@
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-69e5e5) ![Tests](https://img.shields.io/badge/tests-stdlib%20unittest-b4f34d) ![Model](https://img.shields.io/badge/model-explainable%20quadratic-a995ff) ![Trading](https://img.shields.io/badge/auto--trading-disabled-ffbc5c)
 
+## 当前状态（2026-08-25）
+
+| 项目 | 当前情况 |
+|---|---|
+| 公网测试地址 | [x20-market-lens-nq5d.onrender.com](https://x20-market-lens-nq5d.onrender.com/) 已上线，可直接选择股票并体验分析界面 |
+| 公网行情 | **DEMO 模拟数据**；橙色 `DEMO` 标签代表价格不是实际市场成交，即使开盘也不会自动切换为真实行情 |
+| 本地真实行情 | 已支持 Alpaca Paper Trading 的 IEX 实时快照与 WebSocket；密钥只保留在本机进程内存 |
+| 股票范围 | 不是 SPCX 专用；支持输入任意合法美股代码，SEC 有覆盖时会自动加载公司财务事实 |
+| 多用户 | 已实现浏览器会话隔离；公网配置上限为 200 个活跃会话、12 个同时活跃代码、30 分钟空闲清理 |
+| 数学模型 | 20 因子二次响应曲面、梯度、Hessian、链式变化率和二阶压力测试均已实现 |
+| 预测能力 | 当前系数仍是透明启发式先验，**尚未完成样本外校准与收益有效性证明** |
+| 交易功能 | 未实现自动下单，也不提供收益保证或投资建议 |
+
+目前已经完成的是“可运行、可解释、支持多人测试的研究 MVP”。当前最重要的缺口是：公网实时行情展示许可、历史样本校准与回测、数据源补全、持久化和生产监控。在获得允许多用户展示/再分发的市场数据许可之前，公网继续保持 DEMO；真实 IEX 行情仅通过本地安全模式使用。
+
+
 ## 这个项目解决什么
 
 价格走势、新闻热度、利率、财报和传闻的时点不同、可信度不同，也经常互相矛盾。X20 不把它们压成一个神秘的“AI 分数”，而是保留完整证据链，并回答四个问题：
