@@ -17,6 +17,19 @@ class SymbolInputRegressionTests(unittest.TestCase):
         self.assertIn("data.quote.currency", source)
         self.assertIn("data.instrument.regulator", source)
 
+    def test_interface_is_english_and_has_interactive_fluid_background(self) -> None:
+        root = Path(__file__).parents[1]
+        html = (root / "web" / "index.html").read_text(encoding="utf-8")
+        css = (root / "web" / "styles.css").read_text(encoding="utf-8")
+        script = (root / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('<html lang="en">', html)
+        self.assertIn('id="fluid-canvas"', html)
+        self.assertIn("See the forces", html)
+        self.assertIn("Analyze", html)
+        self.assertIn("function initFluidField()", script)
+        self.assertIn("pointermove", script)
+        self.assertIn("prefers-reduced-motion", css)
+
 
 if __name__ == "__main__":
     unittest.main()
