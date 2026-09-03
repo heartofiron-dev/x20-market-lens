@@ -268,9 +268,10 @@ def _filing_url(cik: str, fact: dict[str, object]) -> str:
 
 
 def _interpret(revenue_growth: float | None, rd_intensity: float, operating_margin: float, capex_intensity: float) -> str:
-    growth = "增长" if (revenue_growth or 0.0) > 0 else "收缩"
-    profit = "盈利" if operating_margin > 0 else "经营亏损"
+    growth = "growth" if (revenue_growth or 0.0) > 0 else "contraction"
+    profit = "profitable operations" if operating_margin > 0 else "an operating loss"
     return (
-        f"最新可比期显示营收{growth}、{profit}；研发/营收 {rd_intensity:.1%}，"
-        f"资本开支/营收 {capex_intensity:.1%}。投入规模必须和增长、现金流及后续资本回报一起判断。"
+        f"The latest comparable period shows revenue {growth} and {profit}. "
+        f"R&D was {rd_intensity:.1%} of revenue and capex was {capex_intensity:.1%}. "
+        "Spending should be judged alongside growth, cash flow, and future returns on capital."
     )
