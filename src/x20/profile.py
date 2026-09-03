@@ -38,11 +38,11 @@ class InvestorProfile:
         risk_load = downside_95 / loss_budget if loss_budget else 0.0
         utility = expected_return - self.risk_aversion * uncertainty - 0.35 * max(0.0, concentration - 0.20)
         if risk_load > 1.0 or concentration > 0.35:
-            status = "超出个人风险预算"
+            status = "Above personal risk budget"
         elif risk_load > 0.65 or concentration > 0.22:
-            status = "接近个人风险上限"
+            status = "Near personal risk limit"
         else:
-            status = "风险预算内"
+            status = "Within personal risk budget"
         return {
             "profile": asdict(self),
             "position_value": round(position_value, 2),
@@ -53,5 +53,5 @@ class InvestorProfile:
             "risk_load": round(risk_load, 4),
             "personal_utility": round(utility, 5),
             "status": status,
-            "note": "仅为风险研究输出，不构成买卖建议。",
+            "note": "Risk-research output only; not investment advice.",
         }
