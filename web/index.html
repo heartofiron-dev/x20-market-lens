@@ -1,93 +1,107 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="X20 Market Lens: evidence-first real-time equity research.">
+  <meta name="description" content="X20 Market Lens — an evidence-first, calculus-driven equity research workspace.">
+  <meta name="theme-color" content="#06090d">
   <title>X20 Market Lens · Live Equity Research</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="grid-glow" aria-hidden="true"></div>
+  <canvas id="fluid-canvas" aria-hidden="true"></canvas>
+  <div class="ambient-glow" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+
   <header class="topbar">
     <a class="brand" href="#top" aria-label="X20 Market Lens home">
       <span class="brand-mark">X20</span>
-      <span><strong>Market Lens</strong><small>Evidence × Calculus × Context</small></span>
+      <span class="brand-copy"><strong>Market Lens</strong><small>Evidence · Calculus · Context</small></span>
     </a>
-    <form class="symbol-form" id="symbol-form" aria-label="切换股票代码">
-      <label for="symbol-input">Ticker</label>
-      <input id="symbol-input" name="symbol" value="AAPL" maxlength="15" placeholder="AAPL / SHOP.TO" autocomplete="off" spellcheck="false">
-      <button type="submit">分析</button>
-    </form>
-    <div class="feed-pill" id="feed-pill"><i></i><span id="feed-status">CONNECTING</span></div>
+
+    <div class="topbar-actions">
+      <form class="symbol-form" id="symbol-form" aria-label="Change stock ticker">
+        <label for="symbol-input">Ticker</label>
+        <input id="symbol-input" name="symbol" value="AAPL" maxlength="15" autocomplete="off" spellcheck="false" aria-label="Stock ticker">
+        <button type="submit"><span>Analyze</span><i aria-hidden="true">↗</i></button>
+      </form>
+      <div class="feed-pill" id="feed-pill"><i></i><span id="feed-status">CONNECTING</span></div>
+    </div>
   </header>
 
   <main id="top">
     <section class="hero">
-      <div>
+      <div class="hero-copy">
         <p class="eyebrow" id="symbol-line">US EQUITY · 20-VARIABLE RESPONSE SURFACE</p>
-        <h1>看见价格背后的<br><em>力与曲率。</em></h1>
-        <p class="lede">把实时行情、新闻可信度、监管文件、资本效率和你的实际仓位放进同一个可解释系统。输出概率区间，不输出确定性幻觉。</p>
+        <h1>See the forces<br>behind <em>the price.</em></h1>
+        <p class="lede">Live market signals, source credibility, regulatory filings, capital efficiency, and your actual position—combined in one explainable research system.</p>
+        <div class="hero-tags" aria-label="System principles">
+          <span><i></i>Evidence ranked</span>
+          <span><i></i>Calculus driven</span>
+          <span><i></i>No certainty theatre</span>
+        </div>
       </div>
+
       <div class="quote-block">
+        <div class="quote-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
         <span class="quote-label"><span id="quote-symbol">AAPL</span> / <span id="quote-currency">USD</span> <b id="mode-badge">DEMO</b></span>
         <strong id="price">—</strong>
-        <span id="tick-time">等待首个数据点</span>
+        <span id="tick-time">Waiting for the first data point</span>
       </div>
     </section>
 
-    <section class="kpi-grid" aria-label="核心模型指标">
+    <section class="kpi-grid" aria-label="Core model metrics">
       <article class="kpi cyan">
-        <span>20日上涨概率</span>
+        <span>20-day upside probability</span>
         <strong id="probability">—</strong>
-        <small>启发式先验 · 待样本外校准</small>
+        <small>Heuristic prior · awaiting calibration</small>
       </article>
       <article class="kpi lime">
-        <span>20日收益中位估计</span>
+        <span>20-day median estimate</span>
         <strong id="expected-return">—</strong>
-        <small id="return-range">90% 区间 —</small>
+        <small id="return-range">90% interval —</small>
       </article>
       <article class="kpi violet">
-        <span>链式变化率 dz/dt</span>
+        <span>Chain rate · dz/dt</span>
         <strong id="chain-rate">—</strong>
-        <small>所有变量瞬时影响的合计</small>
+        <small>Combined instantaneous factor effect</small>
       </article>
       <article class="kpi amber">
-        <span>个人风险负载</span>
+        <span>Personal risk load</span>
         <strong id="risk-load">—</strong>
-        <small id="risk-status">填写仓位后计算</small>
+        <small id="risk-status">Add your position to calculate</small>
       </article>
     </section>
 
     <section class="dashboard-grid">
       <article class="panel chart-panel">
         <div class="panel-head">
-          <div><span class="section-no">01</span><h2>实时价格脉冲</h2></div>
+          <div><span class="section-no">01</span><h2>Live price pulse</h2></div>
           <span class="micro" id="quote-kind">SIMULATED FEED</span>
         </div>
         <canvas id="price-chart" role="img" aria-label="Real-time equity price chart"></canvas>
-        <div class="chart-meta"><span>最近 120 个 ticks</span><span id="chart-range">—</span></div>
+        <div class="chart-meta"><span>Latest 120 ticks</span><span id="chart-range">—</span></div>
       </article>
 
       <article class="panel calculus-panel">
         <div class="panel-head">
-          <div><span class="section-no">02</span><h2>多元微积分引擎</h2></div>
+          <div><span class="section-no">02</span><h2>Calculus engine</h2></div>
           <span class="micro">ANALYTIC · NO BLACK BOX</span>
         </div>
         <div class="formula primary">z(x) = β₀ + βᵀx + ½xᵀHx</div>
         <div class="formula-row">
-          <div><span>局部敏感度</span><code>∇z = β + Hx</code></div>
-          <div><span>实时链式法则</span><code>dz/dt = ∇z · dx/dt</code></div>
+          <div><span>Local sensitivity</span><code>∇z = β + Hx</code></div>
+          <div><span>Live chain rule</span><code>dz/dt = ∇z · dx/dt</code></div>
         </div>
-        <p class="math-note">梯度告诉我们“此刻推一下哪个变量，结果变化最大”；Hessian 捕捉新闻×可信度、研发×转化率等非线性交互。</p>
-        <div class="stress"><span>坏消息 + 波动 + 解禁压力</span><strong id="stress-total">—</strong><small id="stress-detail">二阶压力测试</small></div>
+        <p class="math-note">The gradient shows which factor matters most right now. The Hessian captures nonlinear interactions such as sentiment × credibility and R&amp;D × conversion efficiency.</p>
+        <div class="stress"><span>Bad news + volatility + unlock pressure</span><strong id="stress-total">—</strong><small id="stress-detail">Second-order stress test</small></div>
       </article>
     </section>
 
     <section class="dashboard-grid lower">
       <article class="panel sensitivity-panel">
         <div class="panel-head">
-          <div><span class="section-no">03</span><h2>当前最大偏导</h2></div>
+          <div><span class="section-no">03</span><h2>Largest partial derivatives</h2></div>
           <span class="micro">∂z / ∂xᵢ</span>
         </div>
         <div id="sensitivity-list" class="bar-list"></div>
@@ -95,14 +109,14 @@
 
       <article class="panel fundamental-panel">
         <div class="panel-head">
-          <div><span class="section-no">04</span><h2>财报体检</h2></div>
-          <a id="filing-link" class="source-link" target="_blank" rel="noreferrer">SEC 10-Q ↗</a>
+          <div><span class="section-no">04</span><h2>Fundamental health</h2></div>
+          <a id="filing-link" class="source-link" target="_blank" rel="noreferrer">View filing ↗</a>
         </div>
         <div class="metric-matrix">
           <div><span>6M Revenue</span><strong id="revenue">—</strong><small id="revenue-growth">—</small></div>
-          <div><span>R&amp;D / Revenue</span><strong id="rd-intensity">—</strong><small>投入 ≠ 转化</small></div>
-          <div><span>Operating margin</span><strong id="op-margin">—</strong><small>核心经营质量</small></div>
-          <div><span>Capex / Revenue</span><strong id="capex-intensity">—</strong><small>资本消耗压力</small></div>
+          <div><span>R&amp;D / Revenue</span><strong id="rd-intensity">—</strong><small>Spending ≠ conversion</small></div>
+          <div><span>Operating margin</span><strong id="op-margin">—</strong><small>Core operating quality</small></div>
+          <div><span>Capex / Revenue</span><strong id="capex-intensity">—</strong><small>Capital intensity</small></div>
         </div>
         <p id="fundamental-reading" class="reading"></p>
       </article>
@@ -110,8 +124,8 @@
 
     <section class="panel factors-panel">
       <div class="panel-head">
-        <div><span class="section-no">05</span><h2>X20 状态向量</h2></div>
-        <span class="micro">NORMALIZED [-1, +1]</span>
+        <div><span class="section-no">05</span><h2>X20 state vector</h2></div>
+        <span class="micro">NORMALIZED [−1, +1]</span>
       </div>
       <div id="factor-grid" class="factor-grid"></div>
     </section>
@@ -119,7 +133,7 @@
     <section class="dashboard-grid lower">
       <article class="panel evidence-panel">
         <div class="panel-head">
-          <div><span class="section-no">06</span><h2>证据账本</h2></div>
+          <div><span class="section-no">06</span><h2>Evidence ledger</h2></div>
           <span class="micro">SOURCE · TIME · TIER · CONTRADICTION</span>
         </div>
         <div id="evidence-list" class="evidence-list"></div>
@@ -127,32 +141,36 @@
 
       <article class="panel profile-panel">
         <div class="panel-head">
-          <div><span class="section-no">07</span><h2>你的仓位上下文</h2></div>
+          <div><span class="section-no">07</span><h2>Your position context</h2></div>
           <span class="micro">PRIVATE BROWSER SESSION</span>
         </div>
         <form id="profile-form">
-          <label>持股数<input name="shares" type="number" min="0" step="0.01" value="0"></label>
-          <label>买入均价<input name="entry_price" type="number" min="0" step="0.01" value="0"></label>
-          <label>投资组合总值<input name="portfolio_value" type="number" min="1" step="1" value="10000"></label>
-          <label>最大可承受损失<input name="max_loss_pct" type="number" min="0.005" max="0.5" step="0.005" value="0.08"></label>
-          <label>风险厌恶程度<input name="risk_aversion" type="range" min="0" max="1" step="0.05" value="0.65"><output id="risk-output">0.65</output></label>
-          <label>持有周期（天）<input name="horizon_days" type="number" min="1" max="3650" value="20"></label>
-          <button type="submit">重新计算个人风险</button>
+          <label>Shares<input name="shares" type="number" min="0" step="0.01" value="0"></label>
+          <label>Average entry price<input name="entry_price" type="number" min="0" step="0.01" value="0"></label>
+          <label>Total portfolio value<input name="portfolio_value" type="number" min="1" step="1" value="10000"></label>
+          <label>Maximum tolerable loss<input name="max_loss_pct" type="number" min="0.005" max="0.5" step="0.005" value="0.08"></label>
+          <label>Risk aversion<input name="risk_aversion" type="range" min="0" max="1" step="0.05" value="0.65"><output id="risk-output">0.65</output></label>
+          <label>Holding horizon (days)<input name="horizon_days" type="number" min="1" max="3650" value="20"></label>
+          <button type="submit">Recalculate personal risk <span>↗</span></button>
         </form>
         <div class="profile-result">
-          <div><span>仓位集中度</span><strong id="concentration">—</strong></div>
-          <div><span>95% 下行金额</span><strong id="downside">—</strong></div>
-          <div><span>未实现盈亏</span><strong id="pnl">—</strong></div>
+          <div><span>Position concentration</span><strong id="concentration">—</strong></div>
+          <div><span>95% downside amount</span><strong id="downside">—</strong></div>
+          <div><span>Unrealized P&amp;L</span><strong id="pnl">—</strong></div>
         </div>
       </article>
     </section>
 
     <section class="method-strip">
-      <p><strong>Reality check.</strong> 当前系数是可审计的启发式先验，不是已经证明有效的预测模型。任意股票上线前都必须做 walk-forward backtest、概率校准、成本/滑点和信息时点审计。</p>
+      <span class="method-index">METHOD NOTE</span>
+      <p><strong>Reality check.</strong> Current coefficients are auditable heuristic priors—not a proven forecasting model. Every ticker still requires walk-forward testing, probability calibration, transaction-cost and slippage modeling, and information-timing audits.</p>
     </section>
   </main>
 
-  <footer><span>X20 MARKET LENS · v0.2</span><span>研究工具，不构成投资建议或自动交易指令。</span></footer>
+  <footer>
+    <span>X20 MARKET LENS · v0.2</span>
+    <span>Research software · Not investment advice · No automated trading</span>
+  </footer>
   <script src="/app.js" defer></script>
 </body>
 </html>
