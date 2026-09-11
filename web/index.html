@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A stock research dashboard that combines market data, company filings, a 20-factor model, and position risk.">
+  <meta name="theme-color" content="#06090d">
+  <title>X20 Market Lens · Stock Research</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <canvas id="fluid-canvas" aria-hidden="true"></canvas>
+  <div class="ambient-glow" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="X20 Market Lens home">
+      <span class="brand-mark">X20</span>
+      <span class="brand-copy"><strong>Market Lens</strong><small>Market data · Filings · Position risk</small></span>
+    </a>
+
+    <div class="topbar-actions">
+      <form class="symbol-form" id="symbol-form" aria-label="Change stock ticker">
+        <label for="symbol-input">Ticker</label>
+        <input id="symbol-input" name="symbol" value="AAPL" maxlength="15" autocomplete="off" spellcheck="false" aria-label="Stock ticker">
+        <button type="submit"><span>Analyze</span><i aria-hidden="true">↗</i></button>
+      </form>
+      <div class="feed-pill" id="feed-pill"><i></i><span id="feed-status">CONNECTING</span></div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow" id="symbol-line">US EQUITY · 20 MODEL INPUTS</p>
+        <h1>What is moving<br><em>this stock?</em></h1>
+        <p class="lede">X20 puts the price, company filings, source quality, and the size of your position on one page.</p>
+        <div class="hero-tags" aria-label="What the page includes">
+          <span><i></i>Sources included</span>
+          <span><i></i>Math shown</span>
+          <span><i></i>No automatic trading</span>
+        </div>
+      </div>
+
+      <div class="quote-block">
+        <div class="quote-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
+        <span class="quote-label"><span id="quote-symbol">AAPL</span> / <span id="quote-currency">USD</span> <b id="mode-badge">DEMO</b></span>
+        <strong id="price">—</strong>
+        <span id="tick-time">Waiting for the first data point</span>
+      </div>
+    </section>
+
+    <section class="kpi-grid" aria-label="Model results">
+      <article class="kpi cyan">
+        <span>Model probability of a 20-day gain</span>
+        <strong id="probability">—</strong>
+        <small>Not yet calibrated against enough historical data</small>
+      </article>
+      <article class="kpi lime">
+        <span>Model median return over 20 days</span>
+        <strong id="expected-return">—</strong>
+        <small id="return-range">90% interval —</small>
+      </article>
+      <article class="kpi violet">
+        <span>Current change in model score</span>
+        <strong id="chain-rate">—</strong>
+        <small>Chain rule · dz/dt</small>
+      </article>
+      <article class="kpi amber">
+        <span>Position risk versus your loss limit</span>
+        <strong id="risk-load">—</strong>
+        <small id="risk-status">Add your position to calculate</small>
+      </article>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="panel chart-panel">
+        <div class="panel-head">
+          <div><span class="section-no">01</span><h2>Recent price data</h2></div>
+          <span class="micro" id="quote-kind">SIMULATED FEED</span>
+        </div>
+        <canvas id="price-chart" role="img" aria-label="Real-time equity price chart"></canvas>
+        <div class="chart-meta"><span>Latest 120 ticks</span><span id="chart-range">—</span></div>
+      </article>
+
+      <article class="panel calculus-panel">
+        <div class="panel-head">
+          <div><span class="section-no">02</span><h2>How the model is calculated</h2></div>
+          <span class="micro">QUADRATIC MODEL</span>
+        </div>
+        <div class="formula primary">z(x) = β₀ + βᵀx + ½xᵀHx</div>
+        <div class="formula-row">
+          <div><span>Local sensitivity</span><code>∇z = β + Hx</code></div>
+          <div><span>Live chain rule</span><code>dz/dt = ∇z · dx/dt</code></div>
+        </div>
+        <p class="math-note">The gradient measures local sensitivity. The Hessian adds interactions such as sentiment × source credibility and R&amp;D spending × R&amp;D efficiency.</p>
+        <div class="stress"><span>Example: bad news + volatility + unlock pressure</span><strong id="stress-total">—</strong><small id="stress-detail">Second-order stress test</small></div>
+      </article>
+    </section>
+
+    <section class="dashboard-grid lower">
+      <article class="panel sensitivity-panel">
+        <div class="panel-head">
+          <div><span class="section-no">03</span><h2>Factors with the largest local effect</h2></div>
+          <span class="micro">∂z / ∂xᵢ</span>
+        </div>
+        <div id="sensitivity-list" class="bar-list"></div>
+      </article>
+
+      <article class="panel fundamental-panel">
+        <div class="panel-head">
+          <div><span class="section-no">04</span><h2>Company fundamentals</h2></div>
+          <a id="filing-link" class="source-link" target="_blank" rel="noreferrer">View filing ↗</a>
+        </div>
+        <div class="metric-matrix">
+          <div><span>6M Revenue</span><strong id="revenue">—</strong><small id="revenue-growth">—</small></div>
+          <div><span>R&amp;D / Revenue</span><strong id="rd-intensity">—</strong><small>Spending ≠ conversion</small></div>
+          <div><span>Operating margin</span><strong id="op-margin">—</strong><small>Core operating quality</small></div>
+          <div><span>Capex / Revenue</span><strong id="capex-intensity">—</strong><small>Capital intensity</small></div>
+        </div>
+        <p id="fundamental-reading" class="reading"></p>
+      </article>
+    </section>
+
+    <section class="panel factors-panel">
+      <div class="panel-head">
+          <div><span class="section-no">05</span><h2>Twenty model inputs</h2></div>
+        <span class="micro">NORMALIZED [−1, +1]</span>
+      </div>
+      <div id="factor-grid" class="factor-grid"></div>
+    </section>
+
+    <section class="dashboard-grid lower">
+      <article class="panel evidence-panel">
+        <div class="panel-head">
+          <div><span class="section-no">06</span><h2>Sources used</h2></div>
+          <span class="micro">SOURCE · TIME · TIER · CONTRADICTION</span>
+        </div>
+        <div id="evidence-list" class="evidence-list"></div>
+      </article>
+
+      <article class="panel profile-panel">
+        <div class="panel-head">
+          <div><span class="section-no">07</span><h2>Your position</h2></div>
+          <span class="micro">PRIVATE BROWSER SESSION</span>
+        </div>
+        <form id="profile-form">
+          <label>Shares<input name="shares" type="number" min="0" step="0.01" value="0"></label>
+          <label>Average entry price<input name="entry_price" type="number" min="0" step="0.01" value="0"></label>
+          <label>Total portfolio value<input name="portfolio_value" type="number" min="1" step="1" value="10000"></label>
+          <label>Maximum tolerable loss<input name="max_loss_pct" type="number" min="0.005" max="0.5" step="0.005" value="0.08"></label>
+          <label>Risk aversion<input name="risk_aversion" type="range" min="0" max="1" step="0.05" value="0.65"><output id="risk-output">0.65</output></label>
+          <label>Holding horizon (days)<input name="horizon_days" type="number" min="1" max="3650" value="20"></label>
+          <button type="submit">Recalculate personal risk <span>↗</span></button>
+        </form>
+        <div class="profile-result">
+          <div><span>Position concentration</span><strong id="concentration">—</strong></div>
+          <div><span>95% downside amount</span><strong id="downside">—</strong></div>
+          <div><span>Unrealized P&amp;L</span><strong id="pnl">—</strong></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="method-strip">
+      <span class="method-index">CURRENT LIMIT</span>
+      <p><strong>This is not a validated forecast.</strong> The current coefficients are starting assumptions. They still need walk-forward testing, probability calibration, transaction costs, slippage, and checks for information leakage.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>X20 MARKET LENS · v0.2</span>
+    <span>For research only · Not investment advice · No automated trading</span>
+  </footer>
+  <script src="/app.js" defer></script>
+</body>
+</html>
