@@ -1,12 +1,12 @@
 # X20 Market Lens
 
-这是一个我正在做的股票研究项目。
+This is a stock research project I have been working on.
 
-我做它不是因为我觉得股票可以被一个神奇的模型百分之百预测，而是因为我不太满意很多股票软件只给几根线、几条新闻，再扔给用户一个没有解释的“看涨分数”。股票当然会受到价格、利率、财报、新闻、市场情绪甚至传闻影响，但这些信息的可信度和出现时间都不一样。我想做的是把它们放到同一个可以检查、可以追问的模型里。
+I started it because I was not satisfied with stock tools that show a few charts, collect some headlines, and then hand users an unexplained "bullish score." Stock prices respond to market data, interest rates, filings, news, sentiment, and rumors, but those inputs differ in timing and credibility. X20 brings them into one model whose inputs and reasoning can be inspected.
 
-项目最早拿 SPCX 做测试，但现在已经不是 SPCX 专用工具了。美股可以输入 `AAPL`、`NVDA`、`MSFT` 这样的代码；加拿大股票的演示支持 `SHOP.TO`、`RY.TO`、`TD.TO`，以及 `.V`、`.CN`、`.NE` 后缀。
+The project started with SPCX as a test case, but it is no longer tied to one ticker. It accepts U.S. symbols such as `AAPL`, `NVDA`, and `MSFT`. The Canadian equity demo supports `SHOP.TO`, `RY.TO`, and `TD.TO`, along with the `.V`, `.CN`, and `.NE` suffixes.
 
-先把最重要的话放在前面：**现在的 X20 是研究 MVP，不是已经证明能赚钱的预测器，也不会自动下单。**
+Most importantly, **X20 is a research MVP. It is not a proven return predictor, and it does not place trades.**
 
 ## 现在可以直接试
 
