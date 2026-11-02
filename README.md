@@ -8,28 +8,28 @@ The project started with SPCX as a test case, but it is no longer tied to one ti
 
 Most importantly, **X20 is a research MVP. It is not a proven return predictor, and it does not place trades.**
 
-## 现在可以直接试
+## Try it now
 
-公网演示：<https://x20-market-lens-nq5d.onrender.com/>
+Public demo: <https://x20-market-lens-nq5d.onrender.com/>
 
-打开以后，在页面顶部输入股票代码，点击“分析”就可以切换。不同浏览器之间的股票、持仓和风险参数互不覆盖，所以几个人可以同时测试。
+Enter a ticker at the top of the page and click **Analyze** to switch stocks. Tickers, positions, and risk settings are isolated by browser session, so several people can test the site at the same time without overwriting one another's inputs.
 
-需要注意的是，公网价格旁边如果显示橙色 `DEMO`，就表示这是模拟数据。它会动，但不是交易所真实成交；即使开盘也不会自动变成真实行情。
+If the public price display has an orange `DEMO` badge, the data is simulated. The price moves, but it does not represent actual exchange trades and will not automatically become live when the market opens.
 
-目前公网版本能做的事情包括：
+The current public version can:
 
-- 切换不同美股和加拿大股票代码；
-- 连续更新价格图和 20 个模型因子；
-- 展示梯度、链式变化率和二阶压力测试；
-- 输入持股数、成本、组合总值和可承受亏损，单独计算个人风险；
-- 对美股尝试加载 SEC Company Facts；
-- 把加拿大代码识别为 CAD，并指向 SEDAR+，不会假装它有 SEC 数据。
+- switch between supported U.S. and Canadian stock symbols;
+- continuously update the price chart and 20 model inputs;
+- show the gradient, chain-rule rate of change, and a second-order stress test;
+- calculate personal risk from share count, entry price, portfolio value, and loss tolerance;
+- attempt to load SEC Company Facts for U.S. equities;
+- recognize Canadian symbols as CAD and point users to SEDAR+ without pretending SEC data is available.
 
-公网当前最多保留 200 个活跃浏览器会话和 12 个同时活跃的股票代码。免费 Render 实例休眠或重启后，会话会消失，这个版本本来就是给大家测试用的，不是永久账户系统。
+The public deployment currently supports up to 200 active browser sessions and 12 active stock symbols. Sessions disappear when the free Render instance sleeps or restarts. This deployment is intended for testing, not as a persistent account system.
 
-## 真实行情怎么运行
+## Running with live market data
 
-真实行情目前只在本机安全模式下使用 Alpaca Paper Trading。安装和启动：
+Live market data is currently available only in the local secure mode using Alpaca Paper Trading. Install and start it with:
 
 ```powershell
 python -m venv .venv
@@ -37,104 +37,104 @@ python -m venv .venv
 .\.venv\Scripts\python.exe .\scripts\browser_credentials.py
 ```
 
-然后打开 <http://127.0.0.1:8764>，输入 Alpaca Paper Trading 的 Key 和 Secret。
+Open <http://127.0.0.1:8764>, then enter an Alpaca Paper Trading Key and Secret.
 
-凭证只进入这一次运行的进程内存，不写进项目文件，也不会被网页 JavaScript 或 API 返回。真实模式会先读取 Alpaca 的最新快照，再连接 IEX WebSocket 接收 trades、quotes 和 bars。
+The credentials exist only in the memory of the current process. They are not written to project files, exposed to browser JavaScript, or returned by the API. Live mode first loads the latest Alpaca snapshot and then connects to the IEX WebSocket for trades, quotes, and bars.
 
-这里也有两个限制需要说清楚：
+Two limitations are important:
 
-- Alpaca 免费行情是 IEX，不是覆盖全美交易所的 consolidated SIP；
-- Alpaca IEX 不提供 TSX 行情，所以加拿大代码现在只能跑 DEMO。程序会明确拒绝把 `SHOP.TO` 之类的代码伪装成 Alpaca 实时行情。
+- Alpaca's free market data comes from IEX, not the consolidated SIP covering all U.S. exchanges;
+- Alpaca IEX does not provide TSX data, so Canadian symbols remain in `DEMO` mode. The program explicitly refuses to present symbols such as `SHOP.TO` as live Alpaca data.
 
-公网真实行情还需要允许多用户展示或再分发的数据许可。在许可解决之前，我不会把个人 Alpaca Key 塞进 Render，更不会把模拟价格写成“实时价格”。
+Showing live market data to multiple public users would also require the appropriate display or redistribution rights. Until that is resolved, I will not place a personal Alpaca key on Render or label simulated prices as live prices.
 
-如果只想在本机看模拟版本：
+To run the simulated version locally:
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m x20 serve --demo
 ```
 
-打开 <http://127.0.0.1:8765> 即可。
+Then open <http://127.0.0.1:8765>.
 
-## 为什么这里会有多元微积分
+## Why multivariable calculus is part of the project
 
-我没有想把微积分公式贴在界面上当装饰。X20 的核心确实是一张 20 维二次响应曲面：
+The calculus formulas are not there as decoration. X20 is built around a 20-dimensional quadratic response surface:
 
 ```text
 z(x) = β₀ + βᵀx + ½xᵀHx
 P(up | x) = sigmoid(z)
 ```
 
-这里的 `x` 是标准化后的 20 个市场状态变量。
+Here, `x` contains 20 normalized market-state variables.
 
-- `∇z = β + Hx` 是梯度。它回答的是：在当前状态下，轻微改变哪个变量，对结果影响最大？
-- `dz/dt = ∇z · dx/dt` 是链式法则。它把所有变量此刻的变化速度合在一起，看模型正在朝哪个方向走。
-- `H` 是 Hessian。它用来表达变量之间的二阶关系，比如同一条利好新闻，在可信度很高和可信度很低时不应该产生相同影响。
-- `Δz ≈ ∇z·h + ½hᵀHh` 是二阶压力测试。它用来估计坏消息、波动上升和供给压力同时出现时，影响会不会相互放大。
+- `∇z = β + Hx` is the gradient. It shows which small change would have the greatest local effect on the model output.
+- `dz/dt = ∇z · dx/dt` applies the chain rule. It combines the current rate of change of every input to show which direction the model is moving.
+- `H` is the Hessian. It represents second-order interactions between variables. For example, the same positive news should not have the same effect when source credibility is high and when it is low.
+- `Δz ≈ ∇z·h + ½hᵀHh` is the second-order stress approximation. It estimates whether bad news, higher volatility, and supply pressure reinforce one another when they occur together.
 
-模型实现见 [`src/x20/model.py`](src/x20/model.py)，更完整的推导和有限差分验证在 [`docs/MATH.md`](docs/MATH.md)。
+The implementation is in [`src/x20/model.py`](src/x20/model.py). A fuller derivation and finite-difference verification are in [`docs/MATH.md`](docs/MATH.md).
 
-## 20 个变量是什么
+## The 20 model inputs
 
-现在的状态向量包括：
+The current state vector includes:
 
-- 市场：短线动量、中期动量、实现波动率、成交量异动、订单流；
-- 信息：新闻情绪、新闻可信度、传闻压力；
-- 基本面：营收增长、研发强度、研发转化效率、经营利润率、经营现金率、资本开支强度、流动性实力；
-- 环境与供给：估值拉伸、利率冲击、行业相对强度、解禁供给压力、事件风险。
+- market data: short-term momentum, medium-term momentum, realized volatility, volume shock, and order flow;
+- information: news sentiment, news credibility, and rumor pressure;
+- fundamentals: revenue growth, R&D intensity, R&D efficiency, operating margin, operating cash margin, capital expenditure intensity, and liquidity strength;
+- environment and supply: valuation stretch, rate shock, sector-relative strength, float-unlock pressure, and event risk.
 
-缺失的数据不会被随便编一个数字补进去。当前没有可靠来源的估值、利率、行业强弱、解禁等变量会保持中性；传闻也只能进入 `rumor_pressure`，不会在没有监管文件或公司原文确认时被升级成基本面事实。
+Missing data is not replaced with invented values. Inputs such as valuation, rates, sector strength, and unlock pressure remain neutral when no reliable source is available. Rumors can only affect `rumor_pressure`; they are not promoted to fundamental facts without confirmation from a regulatory filing or the company itself.
 
-## 我真正想看的基本面
+## The fundamentals I want to examine
 
-单纯比较“哪个公司研发投入更多”很容易误导。投入高不代表研发有效，也不代表估值合理。所以模型会尽量把研发投入和营收增长、利润率、经营现金流、资本开支放在一起看。
+Simply comparing which company spends more on R&D can be misleading. Higher spending does not prove that the research is effective or that the valuation is reasonable. The model therefore considers R&D spending alongside revenue growth, margins, operating cash flow, and capital expenditure.
 
-美股运行时会根据股票代码查找 SEC ticker/CIK 和 Company Facts，再计算：
+For U.S. equities, the program looks up the SEC ticker/CIK and Company Facts, then calculates:
 
-- revenue growth；
-- R&D intensity 和 R&D efficiency；
-- operating margin 和 operating-cash margin；
-- capex intensity 和 liquidity strength；
-- 对应的 filing form、期间、提交日期和 SEC 原始链接。
+- revenue growth;
+- R&D intensity and R&D efficiency;
+- operating margin and operating cash margin;
+- capital expenditure intensity and liquidity strength;
+- the corresponding filing form, reporting period, filing date, and original SEC link.
 
-`data/spcx_q2_2026.json` 只是留下来的一个可审计案例，不是默认股票，也不是运行依赖。
+`data/spcx_q2_2026.json` remains in the repository as an auditable example. It is not the default stock and is not required at runtime.
 
-加拿大公司的 SEDAR+ 基本面暂时还没有接入。目前页面会诚实显示 unavailable，而不是拿美股 SEC 数据或者模拟财务数字顶上去。
+SEDAR+ fundamentals for Canadian companies are not connected yet. The page reports them as unavailable instead of substituting U.S. SEC data or simulated financial figures.
 
-## 用户自己的情况也要算进去
+## User-specific risk also matters
 
-同一只股票，对轻仓用户和重仓用户不是同一个问题。因此市场模型和个人风险层是分开的。
+The same stock is not the same problem for someone with a small position and someone whose portfolio is highly concentrated. The market model and the personal-risk layer are therefore kept separate.
 
-用户可以填写持股数、买入均价、组合总值、最大可承受损失、风险厌恶程度和持有周期。系统再计算仓位集中度、未实现盈亏、模型区间对应的下行金额，以及相对个人亏损预算的 risk load。
+Users can enter their share count, average entry price, total portfolio value, maximum tolerable loss, risk aversion, and holding horizon. The system then calculates position concentration, unrealized profit or loss, downside value implied by the model interval, and risk load relative to the user's loss budget.
 
-这些资料只存在当前服务器会话的内存中。浏览器拿到的是随机的 `HttpOnly` 会话 Cookie，不保存 Alpaca 密钥。
+These inputs exist only in the current server session. The browser receives a random `HttpOnly` session cookie, which does not contain Alpaca credentials.
 
-## 目前做到哪一步
+## Current status
 
-已经完成：
+Completed:
 
-- 通用股票代码切换，不再把 SPCX 写死；
-- 本地 Alpaca IEX 快照和 WebSocket；
-- 公网多人会话隔离和共享股票计算缓存；
-- SEC Company Facts 的通用解析；
-- 加拿大股票代码、交易所、CAD 和 SEDAR+ 边界识别；
-- 20 因子模型、梯度、Hessian、链式法则和二阶压力测试；
-- 用户仓位和风险预算覆盖层；
-- 单元测试、并发浏览器隔离测试和 GitHub Actions。
+- general ticker switching instead of a hard-coded SPCX workflow;
+- local Alpaca IEX snapshots and WebSocket data;
+- isolated public browser sessions and a shared per-symbol calculation cache;
+- general SEC Company Facts parsing;
+- Canadian symbol, exchange, CAD, and SEDAR+ boundary handling;
+- the 20-factor model, gradient, Hessian, chain rule, and second-order stress testing;
+- the user position and risk-budget layer;
+- unit tests, concurrent browser-isolation tests, and GitHub Actions.
 
-还没有完成：
+Not completed:
 
-- 公网真实行情展示许可；
-- 加拿大真实 TSX 行情和 SEDAR+ 财务数据；
-- 跨股票、跨行情阶段的 purged walk-forward calibration；
-- 足够严格的历史回测、概率校准、滑点和交易成本验证；
-- 期权隐含波动率、FRED 利率和自动同行业 benchmark；
-- 持久化账户、数据源 failover、生产监控和完整许可审计。
+- licensing for displaying live market data publicly;
+- live TSX data and SEDAR+ financial data for Canadian equities;
+- purged walk-forward calibration across stocks and market regimes;
+- sufficiently rigorous historical backtesting, probability calibration, slippage, and transaction-cost testing;
+- options-implied volatility, FRED rates, and automatic peer benchmarks;
+- persistent accounts, data-source failover, production monitoring, and a complete licensing audit.
 
-所以现在页面上的“上涨概率”和“20 日收益区间”只能看作透明的启发式输出。公式可以算对，不代表预测已经有效，更不代表存在因果关系。
+The displayed "probability of a gain" and "20-day return interval" should therefore be treated as transparent heuristic outputs. Correct formulas do not prove that a forecast is effective, and they do not establish causation.
 
-## 测试
+## Tests
 
 ```powershell
 $env:PYTHONPATH = "src"
@@ -142,22 +142,22 @@ python -m unittest discover -s tests -v
 python -m x20 snapshot
 ```
 
-测试包括 Hessian 对称性、解析梯度和有限差分的一致性、链式法则、二阶压力测试、证据可信度、个人风险层、20 因子快照、加拿大代码边界，以及两个浏览器同时使用时的会话隔离。
+The tests cover Hessian symmetry, agreement between the analytical gradient and finite differences, the chain rule, second-order stress testing, evidence credibility, the personal-risk layer, 20-factor snapshots, Canadian-symbol boundaries, and session isolation between two simultaneous browsers.
 
-## 项目结构
+## Project structure
 
 ```text
-src/x20/               模型、实时数据、证据、风险层和 HTTP/SSE 服务
-web/                   不依赖前端框架的实时仪表盘
-scripts/               本地凭证交接和启动脚本
-data/                  可审计案例数据
-tests/                 单元测试和集成测试
-docs/                  数学、架构、数据来源和免责声明
+src/x20/               Model, market data, evidence, risk layer, and HTTP/SSE service
+web/                   Framework-free live dashboard
+scripts/               Local credential handoff and startup scripts
+data/                  Auditable example data
+tests/                 Unit and integration tests
+docs/                  Mathematics, architecture, data sources, and disclaimer
 .github/workflows/     CI
 ```
 
-更详细的架构在 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)，项目验收标准和后续路线在 [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md)。
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the detailed architecture and [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md) for the acceptance criteria and roadmap.
 
-## 免责声明
+## Disclaimer
 
-这个项目用于教育、研究和风险分析，不构成投资、法律、税务或经纪建议。市场数据、新闻分类、财务解析和模型输出都可能出错。不要只根据这个项目买卖股票，完整说明见 [`docs/DISCLAIMER.md`](docs/DISCLAIMER.md)。
+This project is for education, research, and risk analysis. It is not investment, legal, tax, or brokerage advice. Market data, news classification, financial parsing, and model outputs can all be wrong. Do not buy or sell a security based only on this project. See [`docs/DISCLAIMER.md`](docs/DISCLAIMER.md) for the full disclaimer.
